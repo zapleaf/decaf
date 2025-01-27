@@ -1,0 +1,32 @@
+﻿@inherits LayoutComponentBase
+@rendermode InteractiveServer
+
+@inject NavigationManager NavigationManager
+
+<nav class="navbar navbar-top navbar-slim justify-content-between fixed-top navbar-expand-lg" id="navbarTopSlim" data-navbar-appearance="darker" style="">
+    <div class="navbar-logo">
+        <button class="btn navbar-toggler navbar-toggler-humburger-icon hover-bg-transparent" type="button">
+            <span class="navbar-toggle-icon">
+                <span class="toggle-line"></span>
+            </span>
+        </button>
+        <a class="navbar-brand navbar-brand" href="../">decaf<span class="text-body-highlight d-none d-sm-inline">.io</span></a>
+    </div>
+            <div class="collapse navbar-collapse navbar-top-collapse order-1 order-lg-0 justify-content-center" id="navbarTopCollapse">
+                <ul class="navbar-nav navbar-nav-top">
+                    <!-- Home Menu -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link lh-1" href="categories">
+                            <span class="uil fs-8 me-2 uil-chart-pie">
+                            </span>Categories
+                        </a>
+                    </li> @* Categories *@
+                    <li class="nav-item dropdown">
+                        <a class="nav-link lh-1" href="channels">
+                            <span class="uil fs-8 me-2 uil-chart-pie">
+                            </span>Channels
+                        </a>
+                    </li> @* Channels *@
+                </ul>
+            </div>
+</nav>

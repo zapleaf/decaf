@@ -1,0 +1,247 @@
+﻿@page "/channels/"
+@page "/channels/{View?}"
+@page "/channels/{id:int}"
+@page "/channels/{id:int}/{View}"
+@using decaf.Domain.Entities
+@using decaf.Domain.Extensions
+@using decaf.Application.Channels.Common
+@rendermode InteractiveServer
+
+<nav class="navbar navbar-vertical navbar-expand-lg">
+    <div class="collapse navbar-collapse" id="navbarVerticalCollapse">
+        <div class="navbar-vertical-content">
+            <ul class="navbar-nav flex-column" id="navbarVerticalNav">
+                <li class="nav-item">
+                    <p class="navbar-vertical-label">
+                        Channels
+                    </p>
+                    <hr class="navbar-vertical-line">
+                    @foreach (var channel in channels)
+                    {
+                        <div class="nav-item-wrapper">
+                            <a class="nav-link label-1" role="button" @onclick="(() => GetVideos(channel.Id))">
+                                <div class="d-flex align-items-center">
+                                    <span class="nav-link-text-wrapper">
+                                        <span class="nav-link-text">
+                                            @WebUtility.HtmlDecode(channel.Title)
+                                            @if (channel.Videos?.Count > 0)
+                                            {
+                                                <span>&nbsp;(@channel.Videos.Count)</span>
+                                            }
+                                        </span>
+                                    </span>
+                                </div>
+                            </a>
+                        </div>
+                    }
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="content">
+    <div class="row justify-content-between align-items-end pb-1 mb-1 g-3 border-bottom border-1">
+        <div class="col-12 col-sm-auto">
+            <h3 class="mb-1">
+                @WebUtility.HtmlDecode(currentChannel?.Title ?? "Select Channel")
+                <span class="fs-8 fw-normal text-body-tertiary ms-1">
+                    (@(currentChannel?.Videos?.Count ?? 0))
+                </span>
+            </h3>
+        </div>
+        <div class="col-12 col-sm-auto">
+            @if (loading)
+            {
+                <div class="spinner-grow spinner-grow-sm text-success" role="status"></div>
+            }
+        </div>
+        <div class="col-12 col-sm-auto">
+            <div class="d-flex align-items-center">
+                <a href="channel/add" class="btn btn-phoenix-primary btn-sm px-2">
+                    Add Channel
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-between align-items-end mb-4 g-3">
+        <div class="col-12 col-sm-auto">
+            <ul class="nav nav-links mx-n2">
+                <li class="nav-item"><button class="nav-link px-1 py-1 @(watchedOnly ? "" : "active")" @onclick="ViewAll"><span>all</span></button></li>
+                <li class="nav-item"><button class="nav-link px-1 py-1 @(watchedOnly ? "active" : "")" @onclick="FilterByWatched"><span>unwatched</span></button></li>
+                <li class="nav-item ps-3"><span class="fs-9 fw-semibold">Order By:</span></li>
+                <li class="nav-item"><button class="nav-link px-1 py-1 @(orderby == "newest" ? "active" : "")" @onclick="OrderByNewest"><span>newest</span></button></li>
+                <li class="nav-item"><button class="nav-link px-1 py-1 @(orderby == "views" ? "active" : "")" @onclick="OrderByViews"><span>views</span></button></li>
+                <li class="nav-item ps-3"><span class="fs-9 fw-semibold">View:</span></li>
+                <li class="nav-item"><button class="nav-link px-1 py-1 @(View == "videos" ? "active" : "")" @onclick="ViewVideos"><span>videos</span></button></li>
+                <li class="nav-item"><button class="nav-link px-1 py-1 @(View == "details" ? "active" : "")" @onclick="ViewDetails"><span>details</span></button></li>
+                <li class="nav-item"><button class="nav-link px-1 py-1 @(View == "outliers" ? "active" : "")" @onclick="ViewOutliers"><span>outliers</span></button></li>
+                <li class="nav-item ps-3"><span class="fs-9 fw-semibold">Compare:</span></li>
+                <li class="nav-item"><button class="nav-link px-1 py-1" @onclick="ShowModal"><span>Videos</span></button></li>
+            </ul>
+        </div>
+    </div>
+
+    @if (View == "videos" || View == "outliers")
+    {
+        <div class="row g-3 mb-9 mt-0">
+            @foreach (var video in videos)
+            {
+                <div class="col-12 col-sm-6 col-md-6 col-lg-4 col-xl-3 col-xxl-2">
+                    <div class="image-container" style="width: 100%; padding-top: 56%; position: relative;">
+                        <a href=@($"/videos/watch/{video.Id}") target="_blank">
+                            <img src="@video.ThumbnailUrl" class="img-fluid rounded" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" alt="Responsive image">
+                        </a>
+                        <!-- Pill with number -->
+                        <span class="badge rounded-pill text-bg-secondary position-absolute bottom-0 end-0 m-2">
+                            @(TimeSpan.FromSeconds(video.Duration ?? 0).ToString(@"mm\:ss"))
+                        </span>
+                    </div>
+                    <h5 class="text-white fw-bold line-clamp-2 mb-0 mt-2">@WebUtility.HtmlDecode(video.Title)</h5>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <h6 class="text-body fw-normal mb-0">@video.Description</h6>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <h6 class="text-body fw-normal text-nowrap mb-0">@video.ViewCount.ToEstimateString() (@video.RatioAvgViews.ToString("P0"))</h6>
+                        <h6 class="text-body fw-normal text-nowrap mb-0">@video.PublishedAt.ToTimeAgo()</h6>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- START of Details Content -->
+    @if (currentChannel?.Id > 0 && View == "details")
+    {
+        <div class="row gx-lg-9">
+            <div class="col-xl-8 border-end-xl">
+                <!-- START of Main Channel Card -->
+                <div class="col">
+                    <div class="card mb-4">
+                        <div class="card-body p-3 p-sm-3">
+                            <div class="border-bottom border-translucent mb-2">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="avatar avatar-xl  me-2">
+                                        <img class="rounded-circle " src="@currentChannel.ThumbnailURL">
+                                    </div>
+                                    <div class="flex-1">
+                                        <a class="fw-bold mb-0 text-body-emphasis" href=@($"https://www.youtube.com/channel/{currentChannel.YTId}/videos")>@WebUtility.HtmlDecode(currentChannel.Title)</a>
+                                        <p class="fs-9 mb-0 text-body-tertiary text-opacity-85 fw-semibold">
+                                            @currentChannel.SubscriberCount.ToEstimateString() Subscribers - Started in @currentChannel.PublishedAt.Year
+                                        </p>
+                                    </div>
+                                    <div class="btn-reveal-trigger">
+                                        <p class="text-body-secondary"></p>
+                                    </div>
+                                </div>
+                                <p class="text-body-secondary">@WebUtility.HtmlDecode(currentChannel.Description)</p>
+                            </div>
+
+                            <div class="border-bottom border-translucent mb-2">
+                                <p class="fs-9 text-body-secondary">
+                                    Updated: @currentChannel.LastCheckDate.ToTimeAgo() - Uploaded Videos: @currentChannel.VideoCount - Tracked Videos: @currentChannel.TrackedVideos - Avg Views: @currentChannel.AvgViews.ToEstimateString()
+                                </p>
+                            </div>
+
+                            <div class="row justify-content-between align-items-end pb-1 mb-1 g-3">
+                                <div class="col-8 col-sm-auto">
+                                    <div class="d-flex align-items-center">
+                                        <div>
+                                            <a class="btn btn-phoenix-primary p-2" href=@($"https://www.youtube.com/channel/{currentChannel.YTId}/videos") target="_blank">
+                                                <span class="fw-semibold">YouTube</span>
+                                            </a>
+                                            <button type="button" class="btn btn-phoenix-primary p-2" @onclick="@(() => UpdateVideos(currentChannel))">
+                                                <i class="bi bi-arrow-clockwise"></i> Videos
+                                                @if (!string.IsNullOrWhiteSpace(updateMessage))
+                                                {
+                                                    <text>@updateMessage</text>
+                                                }
+                                            </button>
+                                            <button type="button" class="btn btn-phoenix-primary p-2" @onclick="@(() => UpdateStats(currentChannel.Id))">
+                                                <i class="bi bi-arrow-clockwise"></i>
+                                                <span class="fw-semibold"> Stats</span>
+                                            </button>
+                                            @if (loading)
+                                            {
+                                                <button class="btn btn-phoenix-success btn-sm pb-2" type="button">
+                                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </button>
+                                                <button class="btn btn-phoenix-success" type="button">Updating Videos</button>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4 col-sm-auto">
+                                    <button class="btn btn-phoenix-danger p-1" @onclick="@(() => DeleteChannel(currentChannel.Id))">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z" />
+                                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- END of Main Channel Card -->
+                <!-- START of Category Buttons -->
+                <h4 class="mb-3 text-body-highlight fs-xxl-6">Categories:</h4>
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xxl-4 g-3 mb-9 mt-0">
+                    @foreach (var cat in categories)
+                    {
+                        <div class="col mt-0">
+                            @if (currentChannel.Categories.Any(c => c.Id == cat.Id))
+                            {
+                                <button class="w-100 btn btn-sm btn-phoenix-primary active" @onclick="@(() => RemoveCategoryFromChannel(cat.Id, currentChannel.Id))">@cat.Name</button>
+                            }
+                            else
+                            {
+                                <button class="w-100 btn btn-sm btn-phoenix-primary" @onclick="@(() => AddCategoryToChannel(cat.Id, currentChannel.Id))">@cat.Name</button>
+                            }
+                        </div>
+                    }
+                </div>
+                <!-- END of Category Buttons -->
+
+                <h4 class="mb-3 text-body-highlight fs-xxl-6">Notes:</h4>
+                <div class="mb-6">
+                    <textarea class="form-control"
+                    rows="4"
+                    placeholder="Add notes about this channel..."
+                    @bind="currentChannel.Notes"
+                    @bind:event="oninput"
+                    @onchange="UpdateNotes">
+                    </textarea>
+                </div>
+            </div>
+            <div class="col-xl-4">
+                <!-- Right column -->
+            </div>
+        </div>
+    }
+    <!-- END of Details Content -->
+    <Footer />
+</div>
+
+
+@if (showModal)
+{
+    <div class="modal show d-block" tabindex="-1" role="dialog" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body pb-0">
+                    <p>Based on this comma-delimited list of outlier and average video titles and view count from YouTube, can you make any suggestions as to why the outlier list outperformed the average video list? The videos are all from the same YoutTube channel.</p>
+                    <br />
+                    <p>Outlier Videos: @outlierVideos</p>
+                    <br />
+                    <p>Average Videos: @averageVideos</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseModal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}

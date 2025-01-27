@@ -1,0 +1,186 @@
+﻿@page "/"
+@page "/categories"
+
+@using decaf.Domain.Extensions
+@rendermode InteractiveServer
+
+<!-- START Left Nav Menu -->
+<nav class="navbar navbar-vertical navbar-expand-lg">
+    <div class="collapse navbar-collapse" id="navbarVerticalCollapse">
+        <!-- scrollbar removed-->
+        <div class="navbar-vertical-content">
+            <ul class="navbar-nav flex-column" id="navbarVerticalNav">
+                <li class="nav-item">
+                    <!-- label-->
+                    <p class="navbar-vertical-label">
+                        Categories
+                    </p>
+                    <hr class="navbar-vertical-line">
+                    @foreach (var category in categories)
+                    {
+                        <!-- parent pages-->
+                        <div class="nav-item-wrapper">
+                            <a class="nav-link label-1" role="button" @onclick="(() => GetVideos(category))">
+                                <div class="d-flex align-items-center">
+                                    <span class="nav-link-icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-check" viewBox="0 0 16 16">
+                                            <path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3.854 2.146a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 3.293l1.146-1.147a.5.5 0 0 1 .708 0m0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 7.293l1.146-1.147a.5.5 0 0 1 .708 0m0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 0 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0" />
+                                        </svg>
+                                    </span>
+                                    <span class="nav-link-text-wrapper">
+                                        <span class="nav-link-text">
+                                            @category.Name (@category.ChannelCount)
+                                        </span>
+                                    </span>
+                                </div>
+                            </a>
+                        </div>
+                    }
+                </li>
+            </ul>
+        </div>
+    </div>
+    <!-- This is the footer of the left menu -->
+    <div class="navbar-vertical-footer">
+    </div>
+</nav>
+<!-- END Left Nav Menu -->
+<!-- START of Main Content -->
+<div class="content">
+    <!-- START of top section -->
+    <div class="row justify-content-between align-items-end pb-1 mb-1 g-3 border-bottom border-1">
+        <div class="col-12 col-sm-auto">
+            <h3 class="mb-1">@currentCategory.Name Videos<span class="fs-8 fw-normal text-body-tertiary ms-1">(@VideoCount)</span></h3>
+        </div>
+        <div class="col-12 col-sm-auto">
+            @if (Loading)
+            {
+                <div class="spinner-grow spinner-grow-sm text-success" role="status"></div>
+                <div class="spinner-grow spinner-grow-sm text-success" role="status"></div>
+                <div class="spinner-grow spinner-grow-sm text-success" role="status"></div>
+            }
+        </div>
+        <div class="col-12 col-sm-auto">
+            <div class="d-flex align-items-center">
+                <div class="col-auto px-2">
+                    <InputText @bind-Value="@newCategory.Name" class="form-control form-control-sm" placeholder="Category Name" />
+                </div>
+                <div class="col-auto px-4">
+                    <InputText @bind-Value="@newCategory.Description" class="form-control form-control-sm" placeholder="Description" />
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-phoenix-primary btn-sm" @onclick="AddCategory">Add Category</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-between align-items-end mb-4 g-3">
+        <div class="col-12 col-sm-auto">
+            <ul class="nav nav-links mx-n2">
+                <li class="nav-item"><span class="fs-9 fw-semibold">Include: </span></li>
+                <li class="nav-item"><button class="nav-link px-1 py-1 @(watchedOnly ? "" : "active")" @onclick="ViewAll"><span>all</span></button></li>
+                <li class="nav-item"><button class="nav-link px-1 py-1 @(watchedOnly ? "active" : "")" @onclick="FilterByWatched"><span>unwatched</span></button></li>
+                <li class="nav-item ps-3"><span class="fs-9 fw-semibold">Order By:</span></li>
+                <li class="nav-item"><button class="nav-link px-1 py-1 @(orderby == "newest" ? "active" : "")" @onclick="OrderByNewest"><span>newest</span></button></li>
+                <li class="nav-item"><button class="nav-link px-1 py-1 @(orderby == "views" ? "active" : "")" @onclick="OrderByViews"><span>views</span></button></li>
+                <li class="nav-item ps-3"><span class="fs-9 fw-semibold">View:</span></li>
+                <li class="nav-item"><button class="nav-link px-1 py-1 @(view == "videos" ? "active" : "")" @onclick="ViewVideos"><span>videos</span></button></li>
+                <li class="nav-item"><button class="nav-link px-1 py-1 @(view == "channels" ? "active" : "")" @onclick="ViewChannels"><span>channels</span></button></li>
+                <li class="nav-item"><button class="nav-link px-1 py-1 @(view == "outliers" ? "active" : "")" @onclick="ViewOutliers"><span>outliers</span></button></li>
+            </ul>
+        </div>
+    </div>
+    <!-- END of top section -->
+    <!-- START of Video Loop Content -->
+    @if (Videos?.Count() > 0 && (view == "videos" || view == "outliers"))
+    {
+        <div class="row g-3 mb-9 mt-0">
+            @foreach (var video in Videos)
+            {
+                <div class="col-12 col-sm-6 col-md-6 col-lg-4 col-xl-3 col-xxl-2">
+                    <div class="image-container" style="width: 100%; padding-top: 56%; position: relative;">
+                        <a href=@($"/videos/watch/{video.Id}") target="_blank">
+                            <img src="@video.ThumbnailUrl" class="img-fluid rounded" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" alt="Responsive image">
+                        </a>
+                        <!-- Pill with number -->
+                        <span class="badge rounded-pill text-bg-secondary position-absolute bottom-0 end-0 m-2">
+                            @(TimeSpan.FromSeconds(video.Duration ?? 0).ToString(@"mm\:ss"))
+                        </span>
+                    </div>
+                    <h5 class="text-white fw-bold line-clamp-2 mb-0 mt-2">@WebUtility.HtmlDecode(video.Title)</h5>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <h6 class="text-body fw-normal mb-0">@video.Description</h6>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <h6 class="text-body fw-normal text-nowrap mb-0">@video.ViewCount.ToEstimateString() (@video.RatioAvgViews.ToString("P0"))</h6>
+                        <h6 class="text-body fw-normal text-nowrap mb-0">@video.PublishedAt.ToTimeAgo()</h6>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    <!-- END of Video Loop Content -->
+    <!-- START of Channel Loop Content -->
+    @if (Channels?.Count() > 0 && view == "channels")
+    { 
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xxl-4 g-3 mb-9 mt-0">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Title</th>
+                        <th scope="col">Videos</th>
+                        <th scope="col">Subs</th>
+                        <th scope="col">Avg Views</th>
+                        <th scope="col">YouTube</th>
+                        <th scope="col">Details</th>
+                        <th scope="col">Videos</th>
+                        <th scope="col">Stats</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var channel in Channels)
+                    {
+                        <tr>
+                            <td>
+                                <input class="d-none" id="avatarFile" type="file">
+                                <label class="cursor-pointer avatar avatar-xl" for="avatarFile">
+                                    <img class="rounded-circle" src="@channel.ThumbnailURL" alt="">
+                                </label>
+                            </td>
+                            <td><h5>@channel.Title</h5></td>
+                            <td><p class="text-body-secondary">@channel.TrackedVideos</p></td>
+                            <td><p class="text-body-secondary">@channel.SubscriberCount</p></td>
+                            <td><p class="text-body-secondary">@channel.AvgViews</p></td>
+                            <td>
+                                <a class="btn btn-phoenix-primary btn-sm p-2" href=@($"https://www.youtube.com/channel/{@channel.YTId}/videos") target="_blank">
+                                    <span class="fw-semibold">View</span>
+                                </a>
+                            </td>
+                            <td>
+                                <a class="btn btn-phoenix-primary btn-sm p-2" href=@($"/channels/{@channel.Id}/details")>
+                                    <span class="fw-semibold">Details</span>
+                                </a>
+                            </td>
+                            <td>
+                                <a class="btn btn-phoenix-primary btn-sm p-2" href=@($"/channels/{@channel.Id}/videos")>
+                                    <span class="fw-semibold">Videos</span>
+                                </a>
+                            </td>
+                            <td>
+                                <button class="btn btn-phoenix-primary btn-sm p-2" @onclick="(() => UpdateStats(channel.Id))">
+                                    <span class="fw-semibold">Update</span>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    <!-- END of Channel Loop Content -->
+
+    <Footer />
+</div>
+<!-- END of Main Content -->
