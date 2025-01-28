@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "decaf.Domain", "decaf.Domai
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "decaf.Infrastructure", "decaf.Infrastructure\decaf.Infrastructure.csproj", "{2073D5AF-2177-4997-A354-794715CBF557}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "decaf.ChannelUpdate", "decaf.ChannelUpdate\decaf.ChannelUpdate.csproj", "{B3762950-4E00-468F-8D15-9BD0E09BA872}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{2073D5AF-2177-4997-A354-794715CBF557}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2073D5AF-2177-4997-A354-794715CBF557}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2073D5AF-2177-4997-A354-794715CBF557}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3762950-4E00-468F-8D15-9BD0E09BA872}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3762950-4E00-468F-8D15-9BD0E09BA872}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3762950-4E00-468F-8D15-9BD0E09BA872}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3762950-4E00-468F-8D15-9BD0E09BA872}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
