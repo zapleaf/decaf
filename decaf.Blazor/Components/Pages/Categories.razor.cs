@@ -129,7 +129,7 @@ public partial class Categories
         if (watchedOnly)
             Videos = AllVideos.Where(x => x.WasWatched = watchedOnly).ToList();
         else if (view == "outliers")
-            Videos = AllVideos.Where(x => x.RatioAvgViews > 1.5m).ToList();
+            Videos = AllVideos.Where(x => x.RatioAvgViews > 1.2m).ToList();
         else
             Videos = AllVideos;
 

@@ -15,23 +15,6 @@ public class ChannelRepository : Repository<Channel>, IChannelRepository
         _context = context;
     }
 
-    public async Task<Channel> Create(Channel entityToCreate)
-    {
-        var entity = await _context.Channels
-            .Where(p => p.YTId == entityToCreate.YTId).FirstOrDefaultAsync();
-
-        // If the channel already exists, return the id
-        if (entity != null)
-        {
-            return null;
-        }
-
-        await _context.AddAsync<Channel>(entityToCreate);
-        await _context.SaveChangesAsync();
-
-        return entityToCreate;
-    }
-
     public async Task<bool> AddCategoryToChannel(int categoryId, int channelId)
     {
         // Retrieve the category and channel from the database
@@ -49,7 +32,7 @@ public class ChannelRepository : Repository<Channel>, IChannelRepository
         {
             channel.Categories.Add(category);
             // Could instead add channel to category -- category.Channels.Add(channel);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return true;
         }
@@ -74,7 +57,7 @@ public class ChannelRepository : Repository<Channel>, IChannelRepository
         {
             channel.Categories.Remove(category);
             // Could instead add channel to category -- category.Channels.Add(channel);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return true;
         }
@@ -99,10 +82,10 @@ public class ChannelRepository : Repository<Channel>, IChannelRepository
         try
         {
             // Find the Category and Include the Channels navigation property
-            var categoryWithChannels = _context.Categories
+            var categoryWithChannels = await _context.Categories
                                               .Include(p => p.Channels)
                                               .ThenInclude(c => c.Videos)
-                                              .SingleOrDefault(p => p.Id == categoryId);
+                                              .SingleOrDefaultAsync(p => p.Id == categoryId);
 
             // If the category exists, return the related channels
             return categoryWithChannels?.Channels.ToList() ?? new List<Channel>();
@@ -110,13 +93,13 @@ public class ChannelRepository : Repository<Channel>, IChannelRepository
         catch (Exception ex)
         {
             string message = ex.Message;
-            string stackTrace = ex.StackTrace;
+            string stackTrace = ex.StackTrace ?? "No Trace";
         }
 
         return null;
     }
 
-    public async Task<Channel> Get(int id)
+    public new async Task<Channel> Get(int id)
     {
         var entity = await _context.Channels
             .Include(c => c.Videos)
@@ -133,7 +116,7 @@ public class ChannelRepository : Repository<Channel>, IChannelRepository
         return entity;
     }
 
-    public async Task<Channel> Update(Channel channel)
+    public new async Task<Channel> Update(Channel channel)
     {
         var entity = new Channel();
 
@@ -152,14 +135,21 @@ public class ChannelRepository : Repository<Channel>, IChannelRepository
         return entity;
     }
 
-    public async Task<bool> Delete(int idToDelete)
+    public new async Task<bool> Delete(int idToDelete)
     {
-        var entity = await _context.FindAsync<Channel>(idToDelete);
+        var entity = await _context.Channels
+            .Include(c => c.Videos)
+            .FirstOrDefaultAsync(c => c.Id == idToDelete);
 
         if (entity == null)
             return false;
 
-        _context.Remove(entity);
+        // Remove all related videos
+        _context.Videos.RemoveRange(entity.Videos);
+
+        // Remove the channel
+        _context.Channels.Remove(entity);
+
         await _context.SaveChangesAsync();
         return true;
     }

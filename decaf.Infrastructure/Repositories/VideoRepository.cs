@@ -37,15 +37,6 @@ public class VideoRepository : Repository<Video>, IVideoRepository
         return createdCount;
     }
 
-    public async Task<Video> Get(int id)
-    {
-        var entity = await _context.Videos
-            .Where(p => p.Id == id)
-            .FirstOrDefaultAsync();
-
-        return entity;
-    }
-
     public async Task<Video> Get(string ytid, bool includeStats = false)
     {
         var query = _context.Videos.Include(v => v.Channel);

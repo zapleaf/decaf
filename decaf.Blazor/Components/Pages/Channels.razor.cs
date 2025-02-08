@@ -13,6 +13,7 @@ using decaf.Application.Channels.Commands.AddCategory;
 using decaf.Application.Channels.Commands.RemoveCategory;
 using decaf.Application.Categories.Queries.GetAll;
 using decaf.Application.Channels.Commands.UpdateNotes;
+using decaf.Application.Channels.Commands.Delete;
 
 namespace decaf.Blazor.Components.Pages;
 
@@ -118,18 +119,33 @@ public partial class Channels
     {
         loading = true;
 
-        // TODO: Implement delete command
-        var channel = channels.FirstOrDefault(c => c.Id == channelId);
-        if (channel != null)
+        try
         {
-            channels.Remove(channel);
-            currentChannel = null;
-            videos.Clear();
-            allVideos.Clear();
-        }
+            var command = new DeleteChannelCommand { ChannelId = channelId };
+            var result = await Mediator.Send(command);
 
-        loading = false;
-        StateHasChanged();
+            if (result)
+            {
+                var channel = channels.FirstOrDefault(c => c.Id == channelId);
+                if (channel != null)
+                {
+                    channels.Remove(channel);
+                    currentChannel = null;
+                    videos.Clear();
+                    allVideos.Clear();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // TODO: Add error handling
+            Console.WriteLine($"Error deleting channel: {ex.Message}");
+        }
+        finally
+        {
+            loading = false;
+            StateHasChanged();
+        }
     }
 
     private void ViewAll()
@@ -182,7 +198,7 @@ public partial class Channels
         if (watchedOnly)
             videos = videos.Where(x => !x.WasWatched).ToList();
         else if (View == "outliers")
-            videos = videos.Where(x => x.RatioAvgViews > 1m).ToList();
+            videos = videos.Where(x => x.RatioAvgViews > 1.2m).ToList();
 
         videos = orderby switch
         {

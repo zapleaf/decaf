@@ -25,11 +25,25 @@ public class SaveChannelVideosHandler : IRequestHandler<SaveChannelVideosCommand
         // Get the current channel
         var currentChannel = await _channelRepository.Get(request.ChannelYTId);
 
-        // If the LastCheckDate is null or minDate we assume its a new channel and we go back 1 year.
-        if (request.LastCheckDate.IsValidDate()) { request.LastCheckDate = DateTime.UtcNow.AddYears(-1); }
+        List<Video> videos = new();
 
-        // Get videos from YouTube
-        var videos = await _youTubeService.GetChannelVideos(request.ChannelYTId, request.LastCheckDate);
+        // If the LastCheckDate is null or minDate we assume its a new channel and we go back 1 year.
+        if (!request.LastCheckDate.IsValidDate())
+        {
+            // We only want to go back 2 years
+            request.LastCheckDate = DateTime.UtcNow.AddYears(-2);
+
+            // Get videos from YouTube
+            videos = await _youTubeService.GetChannelVideos(request.ChannelYTId, request.LastCheckDate);
+
+            // If they have not released at least 4 videos in the last year we will skip
+            var recentVidCount = videos.Where(v => v.PublishedAt < DateTime.UtcNow.AddYears(-1)).Count();
+            if (recentVidCount < 5) return 0;
+        }
+        else
+        {
+            videos = await _youTubeService.GetChannelVideos(request.ChannelYTId, request.LastCheckDate);
+        }
 
         // Process each video
         var validVideos = new List<Video>();
@@ -46,6 +60,9 @@ public class SaveChannelVideosHandler : IRequestHandler<SaveChannelVideosCommand
                 video.ChannelId = request.ChannelId;
                 await _youTubeService.GetStats(video);
                 validVideos.Add(video);
+
+                // We are going to limit the number of videos to 50
+                if (validVideos.Count >= 50) break;
             }
         }
 

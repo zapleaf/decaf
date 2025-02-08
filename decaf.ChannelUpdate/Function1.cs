@@ -32,10 +32,9 @@ public class UpdateYouTubeChannels
         {
             _logger.LogInformation($"YouTube channel update function started at: {DateTime.Now}");
 
-            // First try to find a channel that has never been checked (LastModifiedAt is null)
+            // First try to find a channel that has never been checked (LastCheckDate is null)
             var channel = await _context.Channels
-                .Where(c => !c.IsDeleted)
-                .Where(c => c.LastModifiedAt == null)
+                .Where(c => !c.IsDeleted && c.LastCheckDate.HasValue)
                 .FirstOrDefaultAsync();
 
             // If no unchecked channels found, get the oldest checked channel that's at least 3 days old
@@ -44,8 +43,8 @@ public class UpdateYouTubeChannels
                 var threeDaysAgo = DateTime.UtcNow.AddDays(-3);
                 channel = await _context.Channels
                     .Where(c => !c.IsDeleted)
-                    .Where(c => c.LastModifiedAt <= threeDaysAgo)
-                    .OrderBy(c => c.LastModifiedAt)
+                    .Where(c => c.LastCheckDate <= threeDaysAgo)
+                    .OrderBy(c => c.LastCheckDate)
                     .FirstOrDefaultAsync();
             }
 

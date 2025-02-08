@@ -16,6 +16,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public required DbSet<Channel> Channels { get; set; }
     public required DbSet<Video> Videos { get; set; }
     public required DbSet<Category> Categories { get; set; }
+    public required DbSet<AiSummary> AiSummaries { get; set; }
+    public required DbSet<AiAnalysis> AiAnalyses { get; set; }
+    public required DbSet<PromptVersion> PromptVersions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -43,5 +46,24 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<Channel>()
             .HasMany(c => c.Categories)
             .WithMany(c => c.Channels);
+
+        // Configure PromptVersion
+        modelBuilder.Entity<PromptVersion>()
+            .HasIndex(p => new { p.Code, p.Version })
+            .IsUnique();
+
+        // Configure AiSummary relationship with PromptVersion
+        modelBuilder.Entity<AiSummary>()
+            .HasOne(s => s.PromptVersion)
+            .WithMany(p => p.AiSummaries)
+            .HasForeignKey(s => s.PromptVersionId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Configure AiAnalysis relationship with PromptVersion
+        modelBuilder.Entity<AiAnalysis>()
+            .HasOne(a => a.PromptVersion)
+            .WithMany(p => p.AiAnalyses)
+            .HasForeignKey(a => a.PromptVersionId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

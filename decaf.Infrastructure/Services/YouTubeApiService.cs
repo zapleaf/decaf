@@ -156,7 +156,9 @@ public class YouTubeApiService : IYouTubeApiService
         searchListRequest.ChannelId = channelId;
         searchListRequest.MaxResults = 25;
         searchListRequest.Type = "video";
-        searchListRequest.PublishedAfter = since ?? DateTime.UtcNow.AddYears(-1);
+
+        if (since != null)
+            searchListRequest.PublishedAfterDateTimeOffset = since;
 
         var results = new List<Google.Apis.YouTube.v3.Data.SearchResult>();
         string? nextPageToken = null;

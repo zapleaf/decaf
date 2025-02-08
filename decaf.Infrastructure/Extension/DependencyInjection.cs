@@ -37,6 +37,9 @@ public static class DependencyInjection
         services.AddScoped<IVideoRepository, VideoRepository>();
         services.AddScoped<IChannelRepository, ChannelRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<IAiSummaryRepository, AiSummaryRepository>();
+        services.AddScoped<IAiAnalysisRepository, AiAnalysisRepository>();
+        services.AddScoped<IPromptVersionRepository, PromptVersionRepository>();
 
         // Get YouTube API key from settings and register the YouTube Service
         services.Configure<YouTubeApiKey>(configuration.GetSection("YouTubeApiKey"));

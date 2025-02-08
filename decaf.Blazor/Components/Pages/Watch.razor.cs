@@ -24,21 +24,21 @@ public partial class Watch
     [Parameter]
     public int Id { get; set; }
 
-    private int vidWidth = 935;
-    private int vidHeight = 535;
+    //private int vidWidth = 935;
+    //private int vidHeight = 535;
 
-    private bool isDisabled = true;
+    //private bool isDisabled = true;
     private string updateMessage;
     private VideoDto video = new();
     private string note = string.Empty;
 
-    private int videoCount = 0;
+    //private int videoCount = 0;
 
     protected override async Task OnInitializedAsync()
     {
         if (Id > 0)
         {
-            GetVideo(Id);
+            await GetVideo(Id);
         }
         else
         {
