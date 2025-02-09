@@ -365,3 +365,5 @@ FodyWeavers.xsd
 /decaf.Blazor/appsettings.json
 /decaf.Blazor/appsettings.Development.json
 /decaf.Blazor/appsettings.json
+/decaf.Blazor/Properties/ServiceDependencies/decafio - Web Deploy/profile.arm.json
+/decaf.Infrastructure/Migrations/AppDbContextModelSnapshot.cs
